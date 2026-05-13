@@ -1,0 +1,1586 @@
+/* ╔══════════════════════════════════════════════════╗
+   ║  TOKENS & RESET                                   ║
+   ╚══════════════════════════════════════════════════╝ */
+:root {
+  --abyss:     #010810;
+  --deep:      #020f1e;
+  --ocean:     #041c38;
+  --mid:       #063060;
+  --surface:   #0a4880;
+  --teal:      #0bbcd4;
+  --cyan:      #3de0f8;
+  --foam:      #b8f0ff;
+  --ice:       #e0f8ff;
+  --warm:      #f7a832;
+  --heat:      #f74c1c;
+  --danger:    #e02020;
+  --green:     #1ed680;
+  --acid:      #c8f028;
+  --white:     #f0faff;
+  --muted:     rgba(184,240,255,0.5);
+  --border:    rgba(11,188,212,0.15);
+  --glow-c:    rgba(61,224,248,0.3);
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;font-size:16px}
+body{
+  background:var(--abyss);
+  color:var(--white);
+  font-family:'DM Mono',monospace;
+  overflow-x:hidden;
+  cursor:none;
+}
+a{text-decoration:none;color:inherit}
+img{display:block;max-width:100%}
+
+/* custom cursor */
+.cursor{
+  position:fixed;
+  width:16px;height:16px;
+  border-radius:50%;
+  background:rgba(61,224,248,0.6);
+  pointer-events:none;
+  z-index:9999;
+  transform:translate(-50%,-50%);
+  mix-blend-mode:screen;
+  animation:cursor-breathe 2s ease-in-out infinite;
+}
+@keyframes cursor-breathe{
+  0%,100%{width:16px;height:16px;opacity:0.6}
+  50%{width:22px;height:22px;opacity:1}
+}
+
+/* scrollbar */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--abyss)}
+::-webkit-scrollbar-thumb{background:var(--teal);border-radius:2px}
+
+/* ╔══════════════════════════════════════════════════╗
+   ║  NAV                                              ║
+   ╚══════════════════════════════════════════════════╝ */
+nav{
+  position:fixed;top:0;left:0;right:0;
+  z-index:900;
+  padding:20px 5vw;
+  display:flex;align-items:center;justify-content:space-between;
+  background:linear-gradient(180deg,rgba(1,8,16,0.95)0%,transparent 100%);
+  backdrop-filter:blur(8px);
+}
+.nav-logo{
+  font-family:'Fraunces',serif;
+  font-size:18px;font-weight:900;
+  letter-spacing:1px;
+  color:var(--cyan);
+  display:flex;align-items:center;gap:10px;
+}
+.nav-logo-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--cyan);
+  animation:logo-dot-pulse 2s ease-in-out infinite;
+}
+@keyframes logo-dot-pulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(61,224,248,0.6)}
+  50%{box-shadow:0 0 0 8px rgba(61,224,248,0)}
+}
+.nav-links{display:flex;gap:32px;list-style:none}
+.nav-links a{
+  font-size:10px;font-weight:500;letter-spacing:3px;
+  text-transform:uppercase;color:var(--muted);
+  transition:color 0.3s;
+}
+.nav-links a:hover{color:var(--cyan)}
+@media(max-width:768px){.nav-links{display:none}}
+
+/* depth indicator bar */
+.depth-bar{
+  position:fixed;right:24px;top:50%;
+  transform:translateY(-50%);
+  z-index:800;
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+}
+.depth-line{
+  width:1px;height:200px;
+  background:linear-gradient(180deg,transparent,var(--teal),transparent);
+  position:relative;overflow:hidden;
+}
+.depth-line::after{
+  content:'';position:absolute;
+  top:-100%;left:0;right:0;
+  height:40%;
+  background:var(--cyan);
+  animation:depth-scan 4s linear infinite;
+}
+@keyframes depth-scan{from{top:-40%}to{top:140%}}
+.depth-label{
+  font-size:9px;letter-spacing:2px;
+  color:rgba(61,224,248,0.4);
+  writing-mode:vertical-rl;
+  transform:rotate(180deg);
+  text-transform:uppercase;
+}
+@media(max-width:600px){.depth-bar{display:none}}
+
+/* ╔══════════════════════════════════════════════════╗
+   ║  SHARED SECTION STYLES                            ║
+   ╚══════════════════════════════════════════════════╝ */
+section{position:relative;overflow:hidden}
+
+.eyebrow{
+  font-size:10px;font-weight:500;letter-spacing:5px;
+  text-transform:uppercase;color:var(--teal);
+  margin-bottom:14px;
+  display:flex;align-items:center;gap:12px;
+}
+.eyebrow::before{content:'//';opacity:0.5;color:var(--cyan)}
+
+h2.display{
+  font-family:'Fraunces',serif;
+  font-size:clamp(36px,7vw,88px);
+  font-weight:900;
+  line-height:0.95;
+  letter-spacing:-2px;
+  margin-bottom:24px;
+}
+h2.display em{
+  font-style:italic;font-weight:300;
+  color:var(--cyan);display:block;
+}
+
+h3.scene-title{
+  font-family:'Fraunces',serif;
+  font-size:clamp(22px,3.5vw,42px);
+  font-weight:700;line-height:1.1;
+  margin-bottom:16px;
+}
+
+.body-text{
+  font-size:clamp(12px,1.4vw,14px);
+  font-weight:300;line-height:2;
+  color:var(--muted);
+  max-width:520px;
+}
+
+.stat-chip{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:7px 16px;border-radius:100px;
+  font-size:11px;font-weight:500;letter-spacing:1px;
+  margin:4px;
+}
+.chip-red  {background:rgba(224,32,32,0.1);border:1px solid rgba(224,32,32,0.3);color:#ff6060}
+.chip-amber{background:rgba(247,168,50,0.1);border:1px solid rgba(247,168,50,0.3);color:var(--warm)}
+.chip-teal {background:rgba(11,188,212,0.1);border:1px solid rgba(11,188,212,0.3);color:var(--cyan)}
+.chip-acid {background:rgba(200,240,40,0.08);border:1px solid rgba(200,240,40,0.25);color:var(--acid)}
+
+.section-pad{padding:clamp(80px,10vw,140px) clamp(20px,6vw,80px)}
+
+/* ╔══════════════════════════════════════════════════╗
+   ║  §1  HERO — OCEAN SURFACE                         ║
+   ╚══════════════════════════════════════════════════╝ */
+.hero{
+  min-height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(180deg,
+    #000810 0%,#010f20 15%,#02183a 35%,
+    #041e50 55%,#063870 75%,#0a5090 100%);
+  text-align:center;
+}
+
+/* ── sun & atmosphere ── */
+.atmos-wrap{
+  position:absolute;
+  top:-200px;left:50%;
+  transform:translateX(-50%);
+  width:600px;height:600px;
+  pointer-events:none;z-index:1;
+}
+.atmos-ring{
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  border:1px solid rgba(247,168,50,0.08);
+  animation:atmos-rotate linear infinite;
+}
+.atmos-ring:nth-child(1){width:220px;height:220px;animation-duration:20s}
+.atmos-ring:nth-child(2){width:320px;height:320px;animation-duration:30s;animation-direction:reverse}
+.atmos-ring:nth-child(3){width:430px;height:430px;animation-duration:45s}
+.atmos-ring:nth-child(4){width:550px;height:550px;animation-duration:60s;animation-direction:reverse;border-color:rgba(247,168,50,0.04)}
+@keyframes atmos-rotate{to{transform:translate(-50%,-50%) rotate(360deg)}}
+
+.sun{
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:80px;height:80px;border-radius:50%;
+  background:radial-gradient(circle,#fff8e0,#ffcc44 40%,#f7a832 70%,transparent);
+  filter:blur(6px);
+  animation:sun-pulse 4s ease-in-out infinite;
+}
+@keyframes sun-pulse{
+  0%,100%{box-shadow:0 0 40px 15px rgba(255,200,60,0.3)}
+  50%{box-shadow:0 0 80px 30px rgba(255,150,30,0.5)}
+}
+
+/* ── sun rays angled down ── */
+.sunray{
+  position:absolute;top:50%;left:50%;
+  width:3px;
+  background:linear-gradient(180deg,rgba(255,200,80,0.15),transparent);
+  transform-origin:top center;
+  filter:blur(4px);
+  animation:ray-flicker ease-in-out infinite alternate;
+}
+@keyframes ray-flicker{
+  0%{opacity:0.4;transform-origin:top center}
+  100%{opacity:0.9}
+}
+
+/* ── ocean waves ── */
+.hero-ocean{
+  position:absolute;
+  bottom:0;left:0;right:0;
+  height:48%;
+  background:linear-gradient(180deg,#0a5090 0%,#062040 50%,#021020 100%);
+  overflow:hidden;
+}
+.h-wave{
+  position:absolute;left:-100%;width:300%;
+  border-radius:42%;
+  animation:wave-roll linear infinite;
+}
+.h-wave:nth-child(1){top:-30px;height:65px;background:rgba(10,72,128,0.9);animation-duration:7s}
+.h-wave:nth-child(2){top:-20px;height:55px;background:rgba(8,56,100,0.85);animation-duration:10s;animation-direction:reverse;animation-delay:-3s}
+.h-wave:nth-child(3){top:-10px;height:48px;background:rgba(4,30,64,0.95);animation-duration:13s;animation-delay:-6s}
+.h-wave:nth-child(4){top:0;height:28px;background:linear-gradient(90deg,transparent,rgba(184,240,255,0.06),transparent,rgba(184,240,255,0.09),transparent);animation-duration:5s;animation-direction:reverse}
+@keyframes wave-roll{
+  from{transform:translateX(0) rotate(0deg)}
+  to{transform:translateX(33.33%) rotate(360deg)}
+}
+
+/* ── underwater light caustics ── */
+.caustic{
+  position:absolute;
+  border-radius:50%;
+  border:1px solid rgba(61,224,248,0.07);
+  animation:caus-exp linear infinite;
+}
+.caustic:nth-child(1){width:100px;height:50px;top:20%;left:10%;animation-duration:5s;animation-delay:0s}
+.caustic:nth-child(2){width:70px;height:35px;top:40%;left:30%;animation-duration:7s;animation-delay:-2s}
+.caustic:nth-child(3){width:130px;height:65px;top:30%;left:55%;animation-duration:6s;animation-delay:-1s}
+.caustic:nth-child(4){width:85px;height:42px;top:55%;left:75%;animation-duration:8s;animation-delay:-4s}
+.caustic:nth-child(5){width:60px;height:30px;top:65%;left:18%;animation-duration:6.5s;animation-delay:-3s}
+.caustic:nth-child(6){width:110px;height:55px;top:70%;left:50%;animation-duration:5.5s;animation-delay:-1.5s}
+@keyframes caus-exp{
+  0%{transform:scale(0.2);opacity:0.8}
+  100%{transform:scale(3);opacity:0}
+}
+
+/* ── floating plastic debris ── */
+.debris{
+  position:absolute;
+  animation:debris-drift linear infinite;
+  opacity:0.4;
+}
+.debris-shape{
+  background:rgba(255,255,255,0.2);
+  border:1px solid rgba(255,255,255,0.15);
+  animation:debris-tumble linear infinite;
+}
+@keyframes debris-drift{
+  0%{transform:translateX(-80px)}
+  100%{transform:translateX(calc(100vw + 80px))}
+}
+@keyframes debris-tumble{
+  from{transform:rotate(0deg)}
+  to{transform:rotate(360deg)}
+}
+
+/* ── jellyfish ── */
+.jelly{
+  position:absolute;
+  pointer-events:none;
+  animation:jelly-rise ease-in-out infinite;
+}
+.jelly-bell{
+  border-radius:50% 50% 0 0;
+  animation:jelly-throb ease-in-out infinite alternate;
+}
+.jelly-bell::after{
+  content:'';position:absolute;
+  bottom:0;left:15%;right:15%;height:35%;
+  background:inherit;opacity:0.3;
+  border-radius:0 0 50% 50%;filter:blur(5px);
+}
+.jelly-tails{display:flex;justify-content:center;gap:3px;padding-top:2px}
+.jelly-tail{border-radius:0 0 50% 50%;animation:tail-sway ease-in-out infinite alternate}
+@keyframes jelly-throb{
+  0%{transform:scaleX(1) scaleY(1)}
+  100%{transform:scaleX(1.25) scaleY(0.82)}
+}
+@keyframes tail-sway{
+  0%{transform:rotate(-20deg) scaleY(0.75)}
+  100%{transform:rotate(20deg) scaleY(1.3)}
+}
+@keyframes jelly-rise{
+  0%{transform:translateY(60vh) translateX(0);opacity:0}
+  8%{opacity:0.85}
+  50%{transform:translateY(10vh) translateX(25px)}
+  92%{opacity:0.7}
+  100%{transform:translateY(-20vh) translateX(-15px);opacity:0}
+}
+
+/* jellyfish instances */
+.j1{left:8%;animation-duration:22s;animation-delay:-3s}
+.j1 .jelly-bell{width:54px;height:32px;background:radial-gradient(ellipse,rgba(220,80,220,0.5),rgba(160,20,180,0.2));border:1px solid rgba(220,80,220,0.3);animation-duration:1.4s}
+.j1 .jelly-tail{width:2px;height:20px;background:rgba(220,80,220,0.3);animation-duration:1.1s}
+.j1 .jelly-tail:nth-child(even){height:14px;animation-delay:-.3s}
+
+.j2{right:12%;animation-duration:28s;animation-delay:-12s}
+.j2 .jelly-bell{width:38px;height:24px;background:radial-gradient(ellipse,rgba(61,224,248,0.45),rgba(11,188,212,0.15));border:1px solid rgba(61,224,248,0.25);animation-duration:1.7s}
+.j2 .jelly-tail{width:1px;height:14px;background:rgba(61,224,248,0.3);animation-duration:1.3s}
+.j2 .jelly-tail:nth-child(odd){height:10px;animation-delay:-.5s}
+
+.j3{left:52%;animation-duration:19s;animation-delay:-8s}
+.j3 .jelly-bell{width:26px;height:16px;background:radial-gradient(ellipse,rgba(247,168,50,0.4),rgba(200,120,20,0.12));border:1px solid rgba(247,168,50,0.2);animation-duration:2s}
+.j3 .jelly-tail{width:1px;height:11px;background:rgba(247,168,50,0.25);animation-duration:0.9s}
+
+/* ── bubbles ── */
+.bbl{
+  position:absolute;border-radius:50%;
+  background:radial-gradient(circle at 30% 30%,rgba(184,240,255,0.5),rgba(61,224,248,0.06));
+  border:1px solid rgba(184,240,255,0.2);
+  animation:bbl-float linear infinite;
+}
+@keyframes bbl-float{
+  0%{transform:translateY(0) translateX(0);opacity:0}
+  6%{opacity:0.9}
+  50%{transform:translateY(-55vh) translateX(18px)}
+  94%{opacity:0.5}
+  100%{transform:translateY(-110vh) translateX(-12px);opacity:0}
+}
+
+/* ── kelp ── */
+.kelp{
+  position:absolute;bottom:0;
+  transform-origin:bottom center;
+  background:linear-gradient(180deg,#1e8040,#0c3a1c);
+  clip-path:polygon(25% 0%,75% 0%,80% 50%,65% 75%,50% 100%,35% 75%,20% 50%);
+  animation:kelp-sway ease-in-out infinite alternate;
+}
+@keyframes kelp-sway{
+  0%{transform:rotate(-14deg) scaleX(1)}
+  100%{transform:rotate(14deg) scaleX(0.94)}
+}
+
+/* ── hero text ── */
+.hero-content{
+  position:relative;z-index:10;
+  padding:0 clamp(20px,8vw,100px);
+  animation:hero-in 2s cubic-bezier(0.16,1,0.3,1) both;
+}
+@keyframes hero-in{
+  from{opacity:0;transform:translateY(50px) scale(0.97)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+.hero-label{
+  font-size:10px;letter-spacing:6px;text-transform:uppercase;
+  color:var(--teal);margin-bottom:20px;
+  display:flex;align-items:center;justify-content:center;gap:12px;
+}
+.hero-label::before,.hero-label::after{content:'';width:28px;height:1px;background:var(--teal);opacity:0.5}
+.hero-h1{
+  font-family:'Fraunces',serif;
+  font-size:clamp(56px,12vw,148px);
+  font-weight:900;line-height:0.9;
+  letter-spacing:-4px;
+  color:var(--ice);
+  text-shadow:0 0 100px rgba(61,224,248,0.2);
+  margin-bottom:10px;
+}
+.hero-h1 span{
+  font-style:italic;font-weight:300;
+  color:var(--cyan);font-size:0.72em;
+  display:block;letter-spacing:-2px;
+}
+.hero-sub{
+  font-size:clamp(12px,1.5vw,15px);
+  font-weight:300;line-height:2;
+  color:var(--muted);
+  max-width:580px;margin:22px auto 0;
+}
+.hero-scroll{
+  position:absolute;bottom:36px;left:50%;
+  transform:translateX(-50%);
+  z-index:10;
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+}
+.hero-scroll-line{
+  width:1px;height:56px;
+  background:linear-gradient(180deg,transparent,var(--cyan) 50%,transparent);
+  animation:scroll-drip 1.8s ease-in-out infinite;
+}
+@keyframes scroll-drip{
+  0%{background-position:0 -56px}
+  100%{background-position:0 56px}
+}
+.hero-scroll span{
+  font-size:8px;letter-spacing:4px;
+  text-transform:uppercase;color:var(--cyan);opacity:0.5;
+}
+
+/* ╔══════════════════════════════════════════════════╗
+   ║  §2  GREENHOUSE EFFECT                            ║
+   ╚══════════════════════════════════════════════════╝ */
+.greenhouse{
+  background:linear-gradient(180deg,#0a5090 0%,#031830 50%,#020d20 100%);
+  padding:clamp(80px,10vw,140px) clamp(20px,6vw,80px);
+}
+.greenhouse-inner{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:clamp(40px,6vw,80px);align-items:center;
+  max-width:1160px;margin:0 auto;
+}
+@media(max-width:860px){.greenhouse-inner{grid-template-columns:1fr}}
+
+/* ── earth & atmosphere diagram ── */
+.earth-scene{
+  position:relative;height:400px;
+  border-radius:24px;overflow:hidden;
+  background:radial-gradient(ellipse at 50% 100%,#031c44 0%,#010810 70%);
+  border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+}
+
+/* space backdrop stars */
+.space-star{
+  position:absolute;background:#fff;border-radius:50%;
+  animation:twinkle ease-in-out infinite alternate;
+}
+@keyframes twinkle{
+  0%{opacity:0.1} 100%{opacity:0.8}
+}
+
+/* earth */
+.earth{
+  position:absolute;
+  bottom:-90px;left:50%;
+  transform:translateX(-50%);
+  width:240px;height:240px;border-radius:50%;
+  background:
+    radial-gradient(ellipse at 35% 30%,rgba(30,160,90,0.7) 0%,transparent 50%),
+    radial-gradient(ellipse at 60% 60%,rgba(20,120,200,0.8) 0%,transparent 40%),
+    radial-gradient(ellipse at 20% 70%,rgba(30,160,90,0.5) 0%,transparent 35%),
+    radial-gradient(ellipse at 75% 25%,rgba(20,100,180,0.6) 0%,transparent 40%),
+    linear-gradient(135deg,#0a3068,#0d4c8a);
+  box-shadow:0 0 60px rgba(10,72,140,0.5);
+  animation:earth-spin 30s linear infinite;
+}
+@keyframes earth-spin{
+  from{background-position:0% 50%}
+  to{background-position:100% 50%}
+}
+/* atmosphere shell */
+.atm-shell{
+  position:absolute;
+  bottom:-90px;left:50%;transform:translateX(-50%);
+  width:300px;height:300px;border-radius:50%;
+  border:2px solid rgba(247,168,50,0.25);
+  background:radial-gradient(ellipse at 50% 50%,transparent 78%,rgba(247,168,50,0.08) 100%);
+  animation:shell-breathe 5s ease-in-out infinite;
+}
+@keyframes shell-breathe{
+  0%,100%{box-shadow:0 0 20px rgba(247,168,50,0.1) inset,0 0 40px rgba(247,168,50,0.05)}
+  50%{box-shadow:0 0 40px rgba(247,168,50,0.2) inset,0 0 80px rgba(247,168,50,0.1)}
+}
+/* CO₂ molecules floating in atmosphere */
+.co2{
+  position:absolute;
+  width:6px;height:6px;border-radius:50%;
+  background:rgba(247,168,50,0.7);
+  animation:co2-float ease-in-out infinite;
+}
+@keyframes co2-float{
+  0%,100%{transform:translate(0,0) scale(1);opacity:0.5}
+  33%{transform:translate(12px,-8px) scale(1.3);opacity:1}
+  66%{transform:translate(-8px,6px) scale(0.8);opacity:0.7}
+}
+
+/* incoming sun arrow */
+.arrow-in{
+  position:absolute;
+  top:20px;right:30%;
+  width:3px;
+  background:linear-gradient(180deg,rgba(255,220,80,0),rgba(255,220,80,0.8));
+  animation:arrow-in-move 2.5s ease-in-out infinite;
+  transform-origin:top;
+  border-radius:2px;
+}
+@keyframes arrow-in-move{
+  0%{height:0;top:20px;opacity:0}
+  30%{opacity:1}
+  60%{height:80px;top:20px;opacity:0.9}
+  100%{height:120px;top:20px;opacity:0}
+}
+/* trapped heat arrow bouncing back */
+.arrow-trap{
+  position:absolute;
+  width:3px;
+  background:linear-gradient(0deg,rgba(247,100,30,0),rgba(247,100,30,0.9));
+  border-radius:2px;
+  animation:arrow-trap-move 3s ease-in-out infinite;
+}
+@keyframes arrow-trap-move{
+  0%{height:0;opacity:0;bottom:90px;left:42%}
+  20%{opacity:0}
+  40%{height:70px;opacity:0.9;bottom:90px;left:42%}
+  70%{height:50px;opacity:0.7;bottom:160px;left:44%}
+  100%{height:0;opacity:0;bottom:130px;left:43%}
+}
+
+/* greenhouse gas meter */
+.ghg-meter{
+  position:absolute;top:16px;left:16px;
+  width:80px;
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(247,168,50,0.2);
+  border-radius:8px;
+  padding:10px 8px;
+}
+.ghg-bar-wrap{
+  height:80px;
+  display:flex;align-items:flex-end;justify-content:center;
+  gap:3px;margin-bottom:6px;
+}
+.ghg-bar{
+  width:10px;border-radius:2px 2px 0 0;
+  animation:ghg-grow ease-in-out infinite alternate;
+}
+.ghg-bar:nth-child(1){background:#f7a832;animation-duration:3s;animation-delay:0s}
+.ghg-bar:nth-child(2){background:#f7801e;animation-duration:4s;animation-delay:-.5s}
+.ghg-bar:nth-child(3){background:#f7540a;animation-duration:3.5s;animation-delay:-1s}
+@keyframes ghg-grow{
+  0%{height:20%} 100%{height:90%}
+}
+.ghg-label{
+  font-size:7px;letter-spacing:1px;
+  color:rgba(247,168,50,0.6);
+  text-align:center;text-transform:uppercase;
+}
+
+/* temp rising tag */
+.temp-tag{
+  position:absolute;top:16px;right:16px;
+  padding:8px 14px;border-radius:100px;
+  background:rgba(232,32,32,0.1);
+  border:1px solid rgba(232,32,32,0.3);
+  font-size:10px;letter-spacing:1px;
+  color:#ff6060;
+  animation:temp-blink 2s ease-in-out infinite;
+}
+@keyframes temp-blink{
+  0%,100%{opacity:0.6} 50%{opacity:1}
+}
+
+/* ╔══════════════════════════════════════════════════╗
+   ║  §3  RISING SEA LEVELS                            ║
+   ╚══════════════════════════════════════════════════╝ */
+.sea-level{
+  background:linear-gradient(180deg,#020d20 0%,#031428 100%);
+  padding:clamp(80px,10vw,140px) clamp(20px,6vw,80px);
+}
+.sea-inner{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:clamp(40px,6vw,80px);align-items:center;
+  max-width:1160px;margin:0 auto;
+}
+@media(max-width:860px){.sea-inner{grid-template-columns:1fr}}
+
+/* ── city submersion scene ── */
+.city-scene{
+  position:relative;height:420px;
+  border-radius:24px;overflow:hidden;
+  border:1px solid var(--border);
+  background:linear-gradient(180deg,#04122a 0%,#020a18 100%);
+}
+/* sky glow */
+.city-sky{
+  position:absolute;top:0;left:0;right:0;height:55%;
+  background:linear-gradient(180deg,#010810 0%,#02162e 100%);
+  overflow:hidden;
+}
+/* moon */
+.moon{
+  position:absolute;
+  top:18px;
+  right:22px;
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  background:radial-gradient(circle at 40% 40%,#e8f4ff,#b0d0e8);
+  box-shadow: 0 0 20px rgba(200,230,255,0.3);
+  animation:moon-glow 6s ease-in-out infinite alternate;
+}
+
+@keyframes moon-glow{
+  0%{box-shadow:0 0 15px rgba(200,230,255,0.2)}
+  100%{box-shadow:0 0 35px rgba(200,230,255,0.5)}
+}
+/* buildings */
+.building{
+  position:absolute;bottom:0;
+  background:linear-gradient(180deg,#0a1e38,#040e1c);
+  border-radius:3px 3px 0 0;
+  overflow:hidden;
+}
+/* window lights */
+.win{
+  position:absolute;
+  background:rgba(255,240,160,0.7);
+  border-radius:1px;
+  animation:win-flicker 4s ease-in-out infinite;
+}
+@keyframes win-flicker{
+  0%,95%,100%{opacity:0.7} 96%{opacity:0} 97%{opacity:0.7} 98%{opacity:0}
+}
+/* rising flood water */
+.flood{
+  position:absolute;
+  left:0;right:0;bottom:0;
+  background:linear-gradient(180deg,rgba(11,188,212,0.4) 0%,rgba(4,48,96,0.9) 50%,#021428 100%);
+  animation:flood-rise ease-in-out infinite alternate;
+  z-index:10;
+}
+@keyframes flood-rise{
+  0%{height:15%;opacity:0.7}
+  100%{height:52%;opacity:0.95}
+}
+/* flood surface waves */
+.flood-wave{
+  position:absolute;top:0;left:-100%;width:300%;
+  border-radius:40%;
+  animation:f-wave-roll linear infinite;
+}
+.flood-wave:nth-child(1){height:16px;background:rgba(61,224,248,0.3);top:-8px;animation-duration:4s}
+.flood-wave:nth-child(2){height:12px;background:rgba(11,188,212,0.25);top:-4px;animation-duration:6s;animation-direction:reverse;animation-delay:-2s}
+@keyframes f-wave-roll{
+  from{transform:translateX(0) rotate(0deg)}
+  to{transform:translateX(33.33%) rotate(360deg)}
+}
+/* sea level measurement line */
+.sea-line{
+  position:absolute;left:0;right:0;
+  height:2px;
+  background:linear-gradient(90deg,transparent,var(--cyan),transparent);
+  z-index:11;
+  animation:sea-line-rise ease-in-out infinite alternate;
+}
+@keyframes sea-line-rise{
+  0%{bottom:15%;opacity:0.5}
+  100%{bottom:52%;opacity:1}
+}
+.sea-line::after{
+  content:'▲ Sea Level Rising';
+  position:absolute;right:10px;top:-18px;
+  font-size:9px;letter-spacing:2px;
+  color:var(--cyan);
+  animation:label-pulse 2s ease-in-out infinite;
+}
+@keyframes label-pulse{0%,100%{opacity:0.5}50%{opacity:1}}
+/* SOS signal from building */
+.sos{
+  position:absolute;
+  font-size:8px;letter-spacing:2px;
+  color:#ff6060;
+  z-index:12;
+  animation:sos-blink 1.5s ease-in-out infinite;
+}
+@keyframes sos-blink{0%,49%,100%{opacity:0}50%{opacity:1}}
+
+/* ╔══════════════════════════════════════════════════╗
+   ║  §4  GLACIER CALVING                              ║
+   ╚══════════════════════════════════════════════════╝ */
+.glacier-section{
+  background:linear-gradient(180deg,#031428 0%,#010c1e 100%);
+  padding:clamp(80px,10vw,140px) clamp(20px,6vw,80px);
+}
+.glacier-inner{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:clamp(40px,6vw,80px);align-items:center;
+  max-width:1160px;margin:0 auto;
+}
+@media(max-width:860px){.glacier-inner{grid-template-columns:1fr;direction:ltr}}
+
+/* ── glacier scene ── */
+.glacier-scene{
+  position:relative;height:420px;
+  border-radius:24px;overflow:hidden;
+  border:1px solid var(--border);
+  background:linear-gradient(180deg,#010c1e 0%,#031c3a 45%,#04244a 100%);
+}
+/* aurora borealis */
+.aurora-wrap{position:absolute;top:0;left:0;right:0;height:40%;overflow:hidden}
+.aurora-b{
+  position:absolute;left:-10%;right:-10%;
+  height:60px;border-radius:50%;
+  filter:blur(18px);
+  animation:aurora-drift ease-in-out infinite alternate;
+  mix-blend-mode:screen;
+}
+.aurora-b:nth-child(1){top:8%;background:rgba(0,220,140,0.14);animation-duration:9s}
+.aurora-b:nth-child(2){top:18%;background:rgba(61,224,248,0.12);animation-duration:12s;animation-delay:-4s}
+.aurora-b:nth-child(3){top:28%;background:rgba(120,50,220,0.08);animation-duration:10s;animation-delay:-7s}
+@keyframes aurora-drift{
+  0%{transform:translateX(-6%) scaleY(1);opacity:0.6}
+  100%{transform:translateX(6%) scaleY(1.5);opacity:1}
+}
+/* stars in scene */
+.glac-star{
+  position:absolute;
+  background:#fff;border-radius:50%;
+  animation:twinkle ease-in-out infinite alternate;
+}
+/* main glacier body */
+.glac-body{
+  position:absolute;
+  bottom:38%;left:0;right:0;
+  height:260px;
+  background:linear-gradient(175deg,
+    #f0faff 0%,#c8eeff 12%,#9ad4f0 30%,
+     #64b4d8 55%, #3090b8 75%, #060900 100%);
+  clip-path:polygon(
+    0% 100%,2% 82%,5% 65%,8% 50%,11% 36%,
+    14% 24%,17% 14%,20% 6%,23% 0%,
+    26% 5%,29% 13%,32% 6%,35% 1%,
+    38% 4%,41% 10%,44% 3%,47% 0%,
+    50% 5%,53% 1%,56% 7%,59% 2%,
+    62% 8%,65% 15%,68% 23%,
+    71% 33%,74% 45%,77% 57%,
+    80% 67%,83% 76%,86% 84%,
+    89% 90%,93% 95%,97% 98%,100% 100%
+  );
+  animation:glac-melt 18s ease-in-out infinite alternate;
+  filter:drop-shadow(0 0 24px rgba(200,238,255,0.25));
+}
+@keyframes glac-melt{
+  0%{height:260px;clip-path:polygon(
+    0% 100%,2% 82%,5% 65%,8% 50%,11% 36%,
+    14% 24%,17% 14%,20% 6%,23% 0%,
+    26% 5%,29% 13%,32% 6%,35% 1%,
+    38% 4%,41% 10%,44% 3%,47% 0%,
+    50% 5%,53% 1%,56% 7%,59% 2%,
+    62% 8%,65% 15%,68% 23%,
+    71% 33%,74% 45%,77% 57%,
+    80% 67%,83% 76%,86% 84%,
+    89% 90%,93% 95%,97% 98%,100% 100%)}
+  50%{height:210px;clip-path:polygon(
+    0% 100%,3% 86%,6% 72%,9% 59%,12% 47%,
+    15% 36%,18% 26%,21% 18%,24% 12%,
+    27% 16%,30% 22%,33% 17%,36% 12%,
+    39% 15%,42% 20%,45% 14%,48% 12%,
+    51% 16%,54% 12%,57% 18%,60% 13%,
+    63% 19%,66% 26%,69% 34%,
+    72% 44%,75% 55%,78% 65%,
+    81% 74%,84% 82%,87% 88%,
+    90% 93%,94% 97%,98% 99%,100% 100%)}
+  100%{height:160px;clip-path:polygon(
+    0% 100%,4% 90%,7% 80%,10% 70%,13% 60%,
+    16% 52%,19% 44%,22% 38%,25% 32%,
+    28% 36%,31% 42%,34% 37%,37% 32%,
+    40% 35%,43% 41%,46% 35%,49% 32%,
+    52% 36%,55% 32%,58% 38%,61% 34%,
+    64% 40%,67% 47%,70% 55%,
+    73% 64%,76% 73%,79% 81%,
+    82% 87%,85% 91%,88% 95%,
+    91% 97%,95% 99%,99% 100%,100% 100%)}
+}
+/* shimmer on glacier */
+.glac-shimmer{
+  position:absolute;bottom:38%;left:0;right:0;height:260px;
+  background:linear-gradient(125deg,transparent 0%,rgba(255,255,255,0.12) 35%,rgba(255,255,255,0.25) 42%,transparent 55%);
+  background-size:300% 100%;
+  animation:glac-shimmer-move 5s ease-in-out infinite;
+  clip-path:inherit;pointer-events:none;
+}
+@keyframes glac-shimmer-move{
+  0%,100%{background-position:200% 0;opacity:0.4}
+  50%{background-position:-100% 0;opacity:0.9}
+}
+/* calving chunk */
+.calve-chunk{
+  position:absolute;
+  background:linear-gradient(135deg,#c8eeff,#80c8e8);
+  border-radius:8px;
+  animation:calve-fall ease-in infinite;
+  opacity:0;
+}
+.calve-chunk:nth-child(1){
+  width:40px;height:50px;
+  bottom:38%;left:14%;
+  clip-path:polygon(0% 0%,80% 10%,100% 60%,70% 100%,0% 80%);
+  animation-duration:6s;animation-delay:0s;
+}
+.calve-chunk:nth-child(2){
+  width:28px;height:36px;
+  bottom:38%;left:20%;
+  clip-path:polygon(20% 0%,100% 0%,80% 100%,0% 70%);
+  animation-duration:8s;animation-delay:-3s;
+}
+.calve-chunk:nth-child(3){
+  width:20px;height:26px;
+  bottom:38%;right:25%;
+  clip-path:polygon(10% 0%,100% 20%,90% 100%,0% 80%);
+  animation-duration:7s;animation-delay:-5s;
+}
+@keyframes calve-fall{
+  0%{opacity:0;transform:translateY(0) rotate(0deg)}
+  10%{opacity:0.9}
+  40%{transform:translateY(30px) rotate(25deg)}
+  70%{transform:translateY(100px) rotate(-15deg);opacity:0.5}
+  100%{transform:translateY(200px) rotate(40deg);opacity:0}
+}
+/* melt drips */
+.glac-drip{
+  position:absolute;width:5px;
+  border-radius:0 0 50% 50%;
+  background:linear-gradient(180deg,rgba(184,240,255,0.8),rgba(61,224,248,0.3));
+  animation:drip-down linear infinite;
+  bottom:38%;
+}
+.glac-drip:nth-child(1){left:18%;height:16px;animation-duration:2.4s;animation-delay:0s}
+.glac-drip:nth-child(2){left:30%;height:22px;animation-duration:3.1s;animation-delay:-1.2s}
+.glac-drip:nth-child(3){left:44%;height:14px;animation-duration:2.7s;animation-delay:-.4s}
+.glac-drip:nth-child(4){left:57%;height:18px;animation-duration:3.4s;animation-delay:-2s}
+.glac-drip:nth-child(5){left:70%;height:12px;animation-duration:2.2s;animation-delay:-.8s}
+@keyframes drip-down{
+  0%{transform:translateY(0) scaleY(0.4);opacity:0}
+  15%{opacity:1}
+  70%{transform:translateY(40px) scaleY(1.3);opacity:0.7}
+  100%{transform:translateY(75px) scaleY(0.2);opacity:0}
+}
+/* ocean in scene */
+.glac-ocean{
+  position:absolute;bottom:0;left:0;right:0;height:40%;
+  background:linear-gradient(180deg,#094878 0%,#041c38 50%,#020c1e 100%);
+  overflow:hidden;
+}
+.glac-wave{
+  position:absolute;left:-100%;width:300%;border-radius:40%;
+  animation:wave-roll linear infinite;
+}
+.glac-wave:nth-child(1){top:-12px;height:28px;background:rgba(10,72,128,0.85);animation-duration:5s}
+.glac-wave:nth-child(2){top:-6px;height:22px;background:rgba(6,36,72,0.8);animation-duration:7s;animation-direction:reverse;animation-delay:-2s}
+.glac-wave:nth-child(3){top:-2px;height:16px;background:rgba(2,12,28,0.9);animation-duration:9s;animation-delay:-4s}
+/* ice floating */
+.ice-float{
+  position:absolute;
+  background:linear-gradient(135deg,rgba(200,238,255,0.7),rgba(160,210,240,0.4));
+  border-radius:50% 60% 40% 55% / 60% 45% 65% 40%;
+  animation:ice-bob ease-in-out infinite alternate;
+  filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+.ice-float:nth-child(1){width:60px;height:20px;top:8px;left:10%;animation-duration:3s;animation-delay:0s}
+.ice-float:nth-child(2){width:40px;height:14px;top:4px;left:40%;animation-duration:4s;animation-delay:-1.5s}
+.ice-float:nth-child(3){width:52px;height:18px;top:10px;right:12%;animation-duration:3.5s;animation-delay:-0.7s}
+@keyframes ice-bob{
+  0%{transform:translateY(0) rotate(-3deg)}
+  100%{transform:translateY(-5px) rotate(3deg)}
+}
+
+/* ╔══════════════════════════════════════════════════╗
+   ║  §5  OCEAN ACIDIFICATION                          ║
+   ╚══════════════════════════════════════════════════╝ */
+.acid-section{
+  background:linear-gradient(180deg,#010c1e 0%,#020e22 100%);
+  padding:clamp(80px,10vw,140px) clamp(20px,6vw,80px);
+}
+.acid-inner{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:clamp(40px,6vw,80px);align-items:center;
+  max-width:1160px;margin:0 auto;
+}
+@media(max-width:860px){.acid-inner{grid-template-columns:1fr}}
+
+/* ── pH visualization ── */
+.ph-scene{
+  position:relative;height:420px;
+  border-radius:24px;overflow:hidden;
+  border:1px solid var(--border);
+  background:linear-gradient(180deg,#010e22 0%,#021428 100%);
+  display:flex;flex-direction:column;align-items:center;
+  padding:24px;
+}
+/* pH bar */
+.ph-bar-wrap{
+  width:100%;height:36px;
+  border-radius:18px;overflow:hidden;
+  border:1px solid rgba(255,255,255,0.1);
+  position:relative;margin-bottom:12px;
+  margin-top:20px;
+}
+.ph-bar-fill{
+  height:100%;
+  background:linear-gradient(90deg,
+    #e83030 0%,#f77030 10%,#f7c030 20%,
+    #a0d830 30%,#30d880 45%,#30c8d0 60%,
+    #3088d0 75%,#2050c0 90%,#1030a0 100%);
+  border-radius:18px;
+}
+.ph-cursor{
+  position:absolute;top:0;bottom:0;width:3px;
+  background:#fff;border-radius:2px;
+  animation:ph-shift ease-in-out infinite alternate;
+  box-shadow:0 0 12px rgba(255,255,255,0.8);
+}
+@keyframes ph-shift{
+  0%{left:61%;box-shadow:0 0 12px rgba(48,200,208,0.8)}
+  100%{left:49%;box-shadow:0 0 12px rgba(232,48,48,0.8)}
+}
+.ph-labels{
+  display:flex;justify-content:space-between;
+  width:100%;font-size:9px;letter-spacing:1px;
+  color:rgba(255,255,255,0.3);margin-bottom:20px;
+}
+.ph-val{
+  font-family:'Fraunces',serif;font-size:54px;
+  font-weight:900;letter-spacing:-2px;margin-bottom:4px;
+  animation:ph-color-shift ease-in-out infinite alternate;
+}
+@keyframes ph-color-shift{
+  0%{color:#30c8d0}
+  100%{color:#f77030}
+}
+.ph-status{
+  font-size:10px;letter-spacing:3px;text-transform:uppercase;
+  color:var(--muted);margin-bottom:28px;
+}
+/* CO2 dissolving animation */
+.co2-dissolve{
+  position:relative;width:100%;flex:1;
+  display:flex;justify-content:center;align-items:center;
+  overflow:hidden;
+}
+.shell{
+  position:absolute;
+  border-radius:60% 40% 60% 40% / 40% 60% 40% 60%;
+  animation:shell-dissolve ease-in-out infinite alternate;
+}
+.shell:nth-child(1){
+  width:100px;height:60px;
+  background:linear-gradient(135deg,rgba(240,250,255,0.7),rgba(200,230,248,0.4));
+  border:1px solid rgba(255,255,255,0.3);
+  animation-duration:8s;
+}
+.shell:nth-child(2){
+  width:70px;height:42px;left:55%;top:40%;
+  background:linear-gradient(135deg,rgba(220,238,255,0.5),rgba(180,215,240,0.25));
+  border:1px solid rgba(255,255,255,0.2);
+  animation-duration:11s;animation-delay:-4s;
+}
+@keyframes shell-dissolve{
+  0%{filter:none;opacity:0.9;transform:scale(1)}
+  100%{filter:blur(4px);opacity:0.1;transform:scale(0.5) rotate(15deg)}
+}
+/* acid bubbles */
+.acid-bbl{
+  position:absolute;border-radius:50%;
+  border:1px solid rgba(200,240,40,0.3);
+  background:rgba(200,240,40,0.05);
+  animation:acid-bbl-pop ease-in-out infinite;
+}
+.acid-bbl:nth-child(1){width:8px;height:8px;left:20%;top:30%;animation-duration:3s;animation-delay:0s}
+.acid-bbl:nth-child(2){width:5px;height:5px;left:40%;top:60%;animation-duration:4s;animation-delay:-1s}
+.acid-bbl:nth-child(3){width:10px;height:10px;left:65%;top:25%;animation-duration:2.5s;animation-delay:-0.5s}
+.acid-bbl:nth-child(4){width:6px;height:6px;left:75%;top:70%;animation-duration:3.5s;animation-delay:-2s}
+@keyframes acid-bbl-pop{
+  0%{transform:scale(0);opacity:0}
+  50%{transform:scale(1);opacity:0.8}
+  100%{transform:scale(1.5);opacity:0}
+}
+
+/* ╔══════════════════════════════════════════════════╗
+   ║  §6  PLASTIC POLLUTION VORTEX                     ║
+   ╚══════════════════════════════════════════════════╝ */
+.plastic-section{
+  background:linear-gradient(180deg,#020e22 0%,#010810 100%);
+  padding:clamp(80px,10vw,140px) clamp(20px,6vw,80px);
+  text-align:center;
+}
+.plastic-inner{max-width:1100px;margin:0 auto}
+.plastic-header{margin-bottom:60px}
+
+/* big stat */
+.big-stat{
+  font-family:'Fraunces',serif;
+  font-size:clamp(60px,12vw,140px);
+  font-weight:900;line-height:1;
+  letter-spacing:-4px;
+  animation:stat-heat 4s ease-in-out infinite alternate;
+}
+@keyframes stat-heat{
+  0%{color:var(--heat);text-shadow:0 0 60px rgba(247,76,28,0.4)}
+  100%{color:#ff2020;text-shadow:0 0 120px rgba(255,32,32,0.7)}
+}
+.big-stat-label{
+  font-size:clamp(12px,1.5vw,16px);letter-spacing:4px;
+  text-transform:uppercase;color:var(--muted);margin-top:6px;
+}
+
+/* plastic vortex */
+.vortex-wrap{
+  position:relative;height:340px;margin:48px auto;
+  display:flex;align-items:center;justify-content:center;
+}
+.vortex-ring{
+  position:absolute;border-radius:50%;
+  border-style:solid;border-color:rgba(255,255,255,0.08);
+  animation:vortex-spin linear infinite;
+}
+.vortex-ring:nth-child(1){width:80px;height:80px;border-width:1px;animation-duration:3s}
+.vortex-ring:nth-child(2){width:140px;height:140px;border-width:1px;animation-duration:5s;animation-direction:reverse}
+.vortex-ring:nth-child(3){width:200px;height:200px;border-width:1px;animation-duration:8s}
+.vortex-ring:nth-child(4){width:270px;height:270px;border-width:1px;animation-duration:12s;animation-direction:reverse}
+.vortex-ring:nth-child(5){width:330px;height:330px;border-width:1px;animation-duration:18s;border-color:rgba(255,255,255,0.04)}
+@keyframes vortex-spin{to{transform:rotate(360deg)}}
+
+/* plastic items on vortex rings */
+.plastics-ring{
+  position:absolute;
+  width:100%;height:100%;
+  border-radius:50%;
+  animation:vortex-spin linear infinite;
+}
+.plastics-ring:nth-child(6){animation-duration:5s;width:140px;height:140px}
+.plastics-ring:nth-child(7){animation-duration:8s;animation-direction:reverse;width:200px;height:200px}
+.plastics-ring:nth-child(8){animation-duration:12s;width:270px;height:270px}
+
+.plast{
+  position:absolute;
+  top:50%;left:50%;
+  transform-origin:0 0;
+}
+.plast-shape{
+  background:rgba(255,255,255,0.2);
+  border:1px solid rgba(255,255,255,0.15);
+  border-radius:2px;
+}
+
+/* fish skeleton */
+.fish-skel{
+  position:absolute;font-size:28px;
+  animation:fish-skel-float ease-in-out infinite;
+  opacity:0.4;
+  filter:drop-shadow(0 0 6px rgba(255,80,80,0.3));
+}
+.fish-skel:nth-child(9){left:12%;top:30%;animation-duration:8s;animation-delay:0s}
+.fish-skel:nth-child(10){right:14%;top:60%;animation-duration:11s;animation-delay:-4s}
+.fish-skel:nth-child(11){left:20%;bottom:20%;animation-duration:9s;animation-delay:-2s}
+@keyframes fish-skel-float{
+  0%,100%{transform:translateY(0) rotate(-5deg)}
+  50%{transform:translateY(-15px) rotate(5deg)}
+}
+
+/* ╔══════════════════════════════════════════════════╗
+   ║  §7  WATER CYCLE DISRUPTION                       ║
+   ╚══════════════════════════════════════════════════╝ */
+.water-cycle{
+  background:linear-gradient(180deg,#010810 0%,#020e22 100%);
+  padding:clamp(80px,10vw,140px) clamp(20px,6vw,80px);
+  text-align:center;
+}
+.wc-inner{max-width:1100px;margin:0 auto}
+.wc-header{margin-bottom:60px}
+
+/* ── full cycle scene ── */
+.cycle-scene{
+  position:relative;height:380px;
+  border-radius:24px;overflow:hidden;
+  border:1px solid var(--border);
+  background:linear-gradient(180deg,#010c1e 0%,#041c34 50%,#021020 100%);
+  margin-bottom:40px;
+}
+/* sun in cycle */
+.wc-sun{
+  position:absolute;top:22px;left:50%;
+  transform:translateX(-50%);
+  width:60px;height:60px;border-radius:50%;
+  background:radial-gradient(circle,#fff8e0,#ffcc44 40%,#f7a832 70%,transparent);
+  filter:blur(5px);
+  animation:wc-sun-pulse 5s ease-in-out infinite;
+}
+@keyframes wc-sun-pulse{
+  0%,100%{box-shadow:0 0 30px 10px rgba(255,200,60,0.25)}
+  50%{box-shadow:0 0 60px 20px rgba(255,150,30,0.45)}
+}
+/* evaporation arrows */
+.evap{
+  position:absolute;
+  width:2px;
+  background:linear-gradient(180deg,transparent,rgba(61,224,248,0.6),transparent);
+  border-radius:1px;
+  animation:evap-rise ease-in-out infinite;
+}
+.evap:nth-child(1){left:30%;bottom:35%;height:60px;animation-duration:3s;animation-delay:0s}
+.evap:nth-child(2){left:35%;bottom:35%;height:40px;animation-duration:4s;animation-delay:-1s}
+.evap:nth-child(3){left:40%;bottom:35%;height:70px;animation-duration:3.5s;animation-delay:-.5s}
+.evap:nth-child(4){left:50%;bottom:35%;height:50px;animation-duration:4.5s;animation-delay:-2s}
+.evap:nth-child(5){left:55%;bottom:35%;height:65px;animation-duration:3.2s;animation-delay:-.8s}
+@keyframes evap-rise{
+  0%{transform:translateY(0) scaleY(0);opacity:0}
+  20%{opacity:0.8}
+  60%{transform:translateY(-70px) scaleY(1);opacity:0.6}
+  100%{transform:translateY(-120px) scaleY(0);opacity:0}
+}
+/* clouds */
+.wc-cloud{
+  position:absolute;
+  border-radius:50px;
+  filter:blur(3px);
+  animation:cloud-drift ease-in-out infinite alternate;
+}
+.wc-cloud::before,.wc-cloud::after{
+  content:'';position:absolute;
+  background:inherit;border-radius:50%;
+}
+.wc-cloud:nth-child(1){
+  width:120px;height:36px;top:70px;left:10%;
+  background:rgba(180,220,240,0.15);
+  animation-duration:8s;animation-delay:0s;
+}
+.wc-cloud:nth-child(1)::before{width:60px;height:50px;top:-25px;left:20px;background:rgba(180,220,240,0.12)}
+.wc-cloud:nth-child(1)::after{width:45px;height:40px;top:-18px;left:55px;background:rgba(180,220,240,0.1)}
+
+.wc-cloud:nth-child(2){
+  width:90px;height:28px;top:90px;right:15%;
+  background:rgba(160,200,228,0.12);
+  animation-duration:11s;animation-delay:-4s;
+}
+.wc-cloud:nth-child(2)::before{width:48px;height:40px;top:-20px;left:15px;background:rgba(160,200,228,0.1)}
+.wc-cloud:nth-child(2)::after{width:36px;height:32px;top:-14px;left:44px;background:rgba(160,200,228,0.08)}
+
+/* extreme storm cloud */
+.storm-cloud{
+  position:absolute;top:55px;left:50%;
+  transform:translateX(-50%);
+  width:160px;height:50px;
+  background:rgba(40,40,60,0.7);
+  border-radius:50px;
+  filter:blur(2px);
+  animation:storm-build ease-in-out infinite alternate;
+}
+.storm-cloud::before{
+  content:'';position:absolute;
+  width:80px;height:70px;border-radius:50%;
+  top:-35px;left:25px;
+  background:rgba(35,35,55,0.75);filter:blur(3px);
+}
+.storm-cloud::after{
+  content:'';position:absolute;
+  width:65px;height:60px;border-radius:50%;
+  top:-28px;left:70px;
+  background:rgba(40,40,58,0.6);filter:blur(3px);
+}
+@keyframes storm-build{
+  0%{transform:translateX(-50%) scale(0.9);opacity:0.5}
+  100%{transform:translateX(-50%) scale(1.1);opacity:1;
+    box-shadow:0 0 40px rgba(80,60,200,0.2)}
+}
+/* lightning */
+.lightning{
+  position:absolute;
+  left:50%;top:100px;
+  transform:translateX(-50%);
+  width:3px;height:0;
+  background:linear-gradient(180deg,#fff,rgba(200,200,255,0));
+  animation:lightning-strike 6s ease-in-out infinite;
+  filter:blur(1px);
+  z-index:5;
+}
+@keyframes lightning-strike{
+  0%,85%,100%{height:0;opacity:0}
+  87%{height:100px;opacity:1;filter:blur(0)}
+  88%{height:0;opacity:0}
+  90%{height:80px;opacity:0.8}
+  91%{height:0;opacity:0}
+}
+/* rain */
+.raindrop{
+  position:absolute;
+  width:2px;border-radius:0 0 50% 50%;
+  background:linear-gradient(180deg,rgba(61,224,248,0),rgba(61,224,248,0.6));
+  animation:rain-fall linear infinite;
+}
+@keyframes rain-fall{
+  from{transform:translateY(-100px);opacity:0}
+  10%{opacity:1}
+  to{transform:translateY(300px);opacity:0}
+}
+/* ocean in water cycle */
+.wc-ocean{
+  position:absolute;bottom:0;left:0;right:0;height:36%;
+  background:linear-gradient(180deg,#094070 0%,#041830 60%,#010c1c 100%);
+  overflow:hidden;
+}
+.wc-wave{
+  position:absolute;left:-100%;width:300%;border-radius:40%;
+  animation:wave-roll linear infinite;
+}
+.wc-wave:nth-child(1){top:-10px;height:24px;background:rgba(10,64,112,0.8);animation-duration:6s}
+.wc-wave:nth-child(2){top:-6px;height:20px;background:rgba(4,24,48,0.85);animation-duration:9s;animation-direction:reverse;animation-delay:-3s}
+/* drought cracked earth strip */
+.drought{
+  position:absolute;
+  bottom:36%;left:0;right:0;height:28px;
+  display:flex;
+}
+.drought-crack{
+  flex:1;height:100%;
+  background:linear-gradient(180deg,#3a2010,#280f00);
+  position:relative;
+  border-right:1px solid rgba(0,0,0,0.5);
+  animation:crack-widen ease-in-out infinite alternate;
+}
+@keyframes crack-widen{
+  0%{border-right-width:1px}
+  100%{border-right-width:3px}
+}
+.drought-crack::after{
+  content:'';position:absolute;
+  top:8px;left:30%;right:20%;
+  height:2px;
+  background:rgba(0,0,0,0.4);
+  border-radius:1px;
+}
+
+/* stats row */
+.wc-stats{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:20px;
+  max-width:700px;margin:0 auto;
+}
+@media(max-width:500px){.wc-stats{grid-template-columns:1fr}}
+.wc-stat-card{
+  background:rgba(11,188,212,0.04);
+  border:1px solid var(--border);
+  border-radius:16px;padding:24px 16px;
+  text-align:center;
+}
+.wc-stat-num{
+  font-family:'Fraunces',serif;
+  font-size:clamp(28px,4vw,44px);
+  font-weight:900;line-height:1;margin-bottom:8px;
+}
+.wc-stat-text{
+  font-size:11px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--muted);line-height:1.6;
+}
+
+/* ╔══════════════════════════════════════════════════╗
+   ║  §8  DEEP OCEAN — OXYGEN DEAD ZONES               ║
+   ╚══════════════════════════════════════════════════╝ */
+.deadzone{
+  background:linear-gradient(180deg,#020e22 0%,#010810 100%);
+  padding:clamp(80px,10vw,140px) clamp(20px,6vw,80px);
+}
+.dz-inner{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:clamp(40px,6vw,80px);align-items:center;
+  max-width:1160px;margin:0 auto;
+}
+@media(max-width:860px){.dz-inner{grid-template-columns:1fr}}
+
+.dz-scene{
+  position:relative;height:420px;
+  border-radius:24px;overflow:hidden;
+  border:1px solid var(--border);
+  background:linear-gradient(180deg,#041c38 0%,#020c1c 40%,#010608 100%);
+}
+/* oxygen layers */
+.o2-layer{
+  position:absolute;left:0;right:0;
+  display:flex;align-items:center;
+  padding:0 16px;
+}
+.o2-label{
+  font-size:9px;letter-spacing:2px;text-transform:uppercase;
+  writing-mode:vertical-rl;transform:rotate(180deg);
+  white-space:nowrap;margin-right:8px;
+}
+.o2-bar{
+  flex:1;height:4px;border-radius:2px;
+  position:relative;overflow:hidden;
+}
+.o2-bar::after{
+  content:'';position:absolute;inset:0;
+  border-radius:2px;
+  animation:o2-drain ease-in-out infinite alternate;
+}
+.o2-layer:nth-child(1){top:8%;color:rgba(61,224,248,0.6)}
+.o2-layer:nth-child(1) .o2-bar{background:rgba(61,224,248,0.12)}
+.o2-layer:nth-child(1) .o2-bar::after{background:var(--cyan);animation-delay:0s}
+
+.o2-layer:nth-child(2){top:22%;color:rgba(61,224,248,0.5)}
+.o2-layer:nth-child(2) .o2-bar{background:rgba(61,224,248,0.1)}
+.o2-layer:nth-child(2) .o2-bar::after{background:rgba(61,224,248,0.7);animation-delay:-.5s}
+
+.o2-layer:nth-child(3){top:36%;color:rgba(247,168,50,0.5)}
+.o2-layer:nth-child(3) .o2-bar{background:rgba(247,168,50,0.08)}
+.o2-layer:nth-child(3) .o2-bar::after{background:rgba(247,168,50,0.5);animation-delay:-1s}
+
+.o2-layer:nth-child(4){top:50%;color:rgba(232,48,48,0.5)}
+.o2-layer:nth-child(4) .o2-bar{background:rgba(232,48,48,0.08)}
+.o2-layer:nth-child(4) .o2-bar::after{background:rgba(232,48,48,0.4);animation-delay:-1.5s}
+
+.o2-layer:nth-child(5){top:64%;color:rgba(232,48,48,0.3)}
+.o2-layer:nth-child(5) .o2-bar{background:rgba(232,48,48,0.05)}
+.o2-layer:nth-child(5) .o2-bar::after{background:rgba(232,48,48,0.2);animation-delay:-2s}
+
+.o2-layer:nth-child(6){top:78%;color:rgba(128,40,40,0.3)}
+.o2-layer:nth-child(6) .o2-bar{background:rgba(128,40,40,0.04)}
+.o2-layer:nth-child(6) .o2-bar::after{background:rgba(128,40,40,0.15);animation-delay:-2.5s}
+
+@keyframes o2-drain{
+  0%{width:85%}
+  100%{width:8%}
+}
+
+/* bioluminescent creatures */
+.biocreature{
+  position:absolute;
+  animation:bio-drift ease-in-out infinite;
+  pointer-events:none;
+}
+.biocreature-body{
+  border-radius:50%;
+  animation:bio-glow ease-in-out infinite alternate;
+}
+@keyframes bio-glow{
+  0%{opacity:0.3;filter:blur(1px)}
+  100%{opacity:0.9;filter:blur(0)}
+}
+@keyframes bio-drift{
+  0%,100%{transform:translate(0,0)}
+  25%{transform:translate(12px,-8px)}
+  50%{transform:translate(-8px,5px)}
+  75%{transform:translate(5px,10px)}
+}
+.bc1{bottom:15%;left:12%;animation-duration:7s}
+.bc1 .biocreature-body{width:8px;height:8px;background:rgba(0,255,180,0.7);box-shadow:0 0 10px rgba(0,255,180,0.5);animation-duration:2s}
+.bc2{bottom:25%;right:15%;animation-duration:9s;animation-delay:-3s}
+.bc2 .biocreature-body{width:5px;height:5px;background:rgba(100,180,255,0.7);box-shadow:0 0 8px rgba(100,180,255,0.5);animation-duration:3s}
+.bc3{bottom:40%;left:30%;animation-duration:11s;animation-delay:-6s}
+.bc3 .biocreature-body{width:6px;height:6px;background:rgba(255,150,50,0.6);box-shadow:0 0 9px rgba(255,150,50,0.4);animation-duration:2.5s}
+.bc4{bottom:12%;right:35%;animation-duration:8s;animation-delay:-2s}
+.bc4 .biocreature-body{width:4px;height:4px;background:rgba(200,100,255,0.7);box-shadow:0 0 7px rgba(200,100,255,0.5);animation-duration:1.8s}
+.bc5{bottom:55%;left:20%;animation-duration:10s;animation-delay:-5s}
+.bc5 .biocreature-body{width:7px;height:7px;background:rgba(50,255,200,0.6);box-shadow:0 0 10px rgba(50,255,200,0.4);animation-duration:2.2s}
+
+/* ╔══════════════════════════════════════════════════╗
+   ║  §9  WHAT WE CAN DO — HOPE SECTION               ║
+   ╚══════════════════════════════════════════════════╝ */
+.hope-section{
+  background:linear-gradient(180deg,#010810 0%,#020e1c 50%,#031424 100%);
+  padding:clamp(80px,10vw,140px) clamp(20px,6vw,80px);
+  text-align:center;
+}
+.hope-inner{max-width:1000px;margin:0 auto}
+.hope-header{margin-bottom:60px}
+
+/* growing tree */
+.tree-wrap{
+  position:relative;height:300px;
+  display:flex;align-items:flex-end;justify-content:center;
+  margin-bottom:60px;
+}
+/* trunk */
+.tree-trunk{
+  position:absolute;bottom:0;left:50%;
+  transform:translateX(-50%);
+  width:18px;
+  background:linear-gradient(180deg,#3a2010,#5a3018);
+  border-radius:4px 4px 0 0;
+  transform-origin:bottom center;
+  animation:trunk-grow ease-out infinite alternate;
+}
+@keyframes trunk-grow{
+  0%{height:40px} 100%{height:90px}
+}
+/* branches */
+.tree-branch{
+  position:absolute;
+  height:4px;
+  background:linear-gradient(90deg,#3a2010,#2a1808);
+  border-radius:2px;
+  transform-origin:left center;
+  animation:branch-grow ease-out infinite alternate;
+}
+@keyframes branch-grow{
+  0%{width:0;opacity:0}
+  30%{opacity:1}
+  100%{opacity:1}
+}
+/* leaves clusters */
+.leaf-cluster{
+  position:absolute;
+  border-radius:50%;
+  animation:leaf-bloom ease-in-out infinite alternate;
+}
+@keyframes leaf-bloom{
+  0%{transform:scale(0.7);opacity:0.6}
+  100%{transform:scale(1.05);opacity:1}
+}
+/* leaf 1 — top */
+.lc1{width:110px;height:110px;top:20px;left:50%;transform:translateX(-50%);
+  background:radial-gradient(circle,#2ad870,#1ab050 60%,#0a7030);
+  animation-duration:3s;box-shadow:0 0 30px rgba(30,220,110,0.2)}
+/* leaf 2 — left */
+.lc2{width:80px;height:80px;top:80px;left:calc(50% - 75px);
+  background:radial-gradient(circle,#28d068,#18a048 60%,#086030);
+  animation-duration:4s;animation-delay:-.5s}
+/* leaf 3 — right */
+.lc3{width:80px;height:80px;top:80px;left:calc(50% + 10px);
+  background:radial-gradient(circle,#30d878,#1ab858 60%,#0a6838);
+  animation-duration:3.5s;animation-delay:-1s}
+/* leaf 4 — lower-left */
+.lc4{width:60px;height:60px;top:140px;left:calc(50% - 60px);
+  background:radial-gradient(circle,#20b858,#10903a 60%,#045820);
+  animation-duration:5s;animation-delay:-2s}
+/* leaf 5 — lower-right */
+.lc5{width:60px;height:60px;top:140px;left:calc(50% + 14px);
+  background:radial-gradient(circle,#22c060,#12943e 60%,#046028);
+  animation-duration:4.5s;animation-delay:-1.5s}
+
+/* wind particles around tree */
+.wind-pt{
+  position:absolute;
+  border-radius:50%;
+  background:rgba(30,215,120,0.4);
+  animation:wind-swirl ease-in-out infinite;
+}
+.wind-pt:nth-child(1){width:5px;height:5px;animation-duration:6s;animation-delay:0s}
+.wind-pt:nth-child(2){width:3px;height:3px;animation-duration:8s;animation-delay:-2s}
+.wind-pt:nth-child(3){width:4px;height:4px;animation-duration:7s;animation-delay:-4s}
+@keyframes wind-swirl{
+  0%{transform:translate(0,0) scale(0.5);opacity:0}
+  20%{opacity:0.8}
+  50%{transform:translate(60px,-80px) scale(1.2)}
+  80%{opacity:0.4}
+  100%{transform:translate(-40px,-120px) scale(0.3);opacity:0}
+}
+
+/* action cards */
+.action-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+  gap:16px;margin-top:0;
+}
+.action-card{
+  background:rgba(30,215,120,0.04);
+  border:1px solid rgba(30,215,120,0.15);
+  border-radius:20px;padding:28px 20px;
+  transition:transform 0.4s cubic-bezier(0.16,1,0.3,1),border-color 0.3s;
+}
+.action-card:hover{
+  transform:translateY(-8px);
+  border-color:rgba(30,215,120,0.4);
+}
+.action-icon{
+  font-size:32px;margin-bottom:14px;display:block;
+  animation:icon-rise 4s ease-in-out infinite;
+}
+.action-card:nth-child(1) .action-icon{animation-delay:0s}
+.action-card:nth-child(2) .action-icon{animation-delay:0.5s}
+.action-card:nth-child(3) .action-icon{animation-delay:1s}
+.action-card:nth-child(4) .action-icon{animation-delay:1.5s}
+.action-card:nth-child(5) .action-icon{animation-delay:2s}
+.action-card:nth-child(6) .action-icon{animation-delay:2.5s}
+@keyframes icon-rise{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-6px)}
+}
+.action-title{
+  font-family:'Fraunces',serif;font-size:18px;
+  font-weight:700;color:var(--ice);margin-bottom:8px;
+}
+.action-body{font-size:11px;font-weight:300;line-height:1.8;color:var(--muted)}
+
+/* ╔══════════════════════════════════════════════════╗
+   ║  §10  FOOTER — DEEP ABYSS                         ║
+   ╚══════════════════════════════════════════════════╝ */
+footer{
+  position:relative;
+  background:linear-gradient(180deg,#031424 0%,#010810 40%,#000408 100%);
+  border-top:1px solid var(--border);
+  padding:60px clamp(20px,6vw,80px) 40px;
+  text-align:center;overflow:hidden;
+}
+/* abyss glow */
+footer::before{
+  content:'';position:absolute;
+  bottom:0;left:50%;transform:translateX(-50%);
+  width:600px;height:200px;
+  background:radial-gradient(ellipse,rgba(11,188,212,0.06),transparent 70%);
+  pointer-events:none;
+}
+.footer-logo{
+  font-family:'Fraunces',serif;
+  font-size:clamp(28px,5vw,48px);
+  font-weight:900;letter-spacing:-1px;
+  color:var(--cyan);margin-bottom:6px;
+  text-shadow:0 0 40px rgba(61,224,248,0.3);
+}
+.footer-tagline{
+  font-size:10px;letter-spacing:5px;text-transform:uppercase;
+  color:var(--muted);margin-bottom:40px;
+}
+.footer-message{
+  max-width:560px;margin:0 auto 40px;
+  font-size:13px;font-weight:300;line-height:2;color:var(--muted);
+}
+/* abyss bubbles */
+.abyss-bbl{
+  position:absolute;border-radius:50%;
+  border:1px solid rgba(11,188,212,0.15);
+  animation:abyss-bbl-rise linear infinite;
+}
+.abyss-bbl:nth-child(1){width:6px;height:6px;left:8%;bottom:0;animation-duration:10s;animation-delay:0s}
+.abyss-bbl:nth-child(2){width:4px;height:4px;left:20%;bottom:0;animation-duration:14s;animation-delay:-5s}
+.abyss-bbl:nth-child(3){width:8px;height:8px;left:35%;bottom:0;animation-duration:11s;animation-delay:-2s}
+.abyss-bbl:nth-child(4){width:3px;height:3px;left:55%;bottom:0;animation-duration:16s;animation-delay:-8s}
+.abyss-bbl:nth-child(5){width:5px;height:5px;left:70%;bottom:0;animation-duration:12s;animation-delay:-4s}
+.abyss-bbl:nth-child(6){width:4px;height:4px;left:85%;bottom:0;animation-duration:15s;animation-delay:-7s}
+@keyframes abyss-bbl-rise{
+  0%{transform:translateY(0);opacity:0}
+  5%{opacity:0.6}
+  95%{opacity:0.3}
+  100%{transform:translateY(-200px);opacity:0}
+}
+
+
+/* ╔══════════════════════════════════════════════════╗
+   ║  TICKER — facts crawl                             ║
+   ╚══════════════════════════════════════════════════╝ */
+.facts-ticker{
+  background:rgba(11,188,212,0.05);
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  padding:13px 0;overflow:hidden;
+}
+.ticker-inner{
+  display:flex;gap:60px;
+  animation:ticker-crawl 35s linear infinite;
+  width:max-content;white-space:nowrap;
+}
+.ticker-fact{
+  font-size:10px;letter-spacing:2px;text-transform:uppercase;
+  color:var(--teal);display:flex;align-items:center;gap:12px;
+}
+.ticker-fact::before{content:'◈';opacity:0.5}
+@keyframes ticker-crawl{
+  from{transform:translateX(0)}
+  to{transform:translateX(-50%)}
+}
+
+/* ══ RESPONSIVE ══ */
+@media(max-width:860px){
+  .greenhouse-inner,.sea-inner,.glacier-inner,.acid-inner,.dz-inner{
+    grid-template-columns:1fr;
+  }
+}
